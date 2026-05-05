@@ -1,0 +1,10 @@
+# Streamlit theme — applied to the whole app.
+# This is what gives us Davidson red as the accent color
+# instead of Streamlit's default blue/teal.
+
+[theme]
+primaryColor = "#B30838"          # Davidson red
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F5F5F5"
+textColor = "#1A1A1A"
+font = "serif"                    # closer to academic publications than the default sans

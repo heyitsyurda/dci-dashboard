@@ -1,0 +1,13 @@
+# Python virtual environment — never commit this; it's huge and machine-specific
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Streamlit secrets — NEVER commit. Contains the Airtable API token.
+.streamlit/secrets.toml
+
+# OS / editor junk
+.DS_Store
+.vscode/
+.idea/
