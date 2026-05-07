@@ -188,6 +188,25 @@ with tab_reports:
         if eid is not None and name is not None:
             event_name_by_id[eid] = str(name).strip().lower()
 
+    # person_id -> affiliation (pulled from the People table, since
+    # affiliation is a property of the person rather than the visit).
+    # We try several candidate field names because the schema has
+    # been iterated on.
+    affiliation_by_person = {}
+    for r in people:
+        f = r["fields"]
+        pid = f.get("person_id")
+        if pid is None:
+            continue
+        aff = pick(
+            f,
+            ["affiliation", "Affiliation", "role", "Role", "type",
+             "category", "Category", "status", "Status"],
+            default=None,
+        )
+        if aff:
+            affiliation_by_person[pid] = str(aff)
+
     # Walk every attendance row, attach the classification (if any),
     # and end up with a flat dataframe we can group six different ways.
     rows_with_class = []
@@ -195,7 +214,7 @@ with tab_reports:
         f = row["fields"]
         eid = f.get("event_id")
         pid = f.get("person_id")
-        ticket = f.get("ticket_type", "")
+        affiliation = affiliation_by_person.get(pid, "(unspecified)")
         name = event_name_by_id.get(eid)
         if not name:
             continue
@@ -204,7 +223,7 @@ with tab_reports:
             continue
         rows_with_class.append({
             "person_id": pid,
-            "Affiliation": ticket if ticket else "(unspecified)",
+            "Affiliation": affiliation,
             "Calendar Year": cls["Calendar Year"],
             "Semester": cls["Semester"],
             "Academic Year": cls["Academic Year"],
