@@ -1,4 +1,5 @@
 """
+Authir: Yurdanur Yolcu
 Airtable data layer.
 
 Everything that talks to Airtable lives in this file. The UI in app.py
@@ -6,8 +7,7 @@ imports from here. Each loader is cached for 5 minutes so repeated
 reads inside one session are free.
 
 The Airtable token is read from .streamlit/secrets.toml locally, or
-from the Streamlit Cloud secrets vault when deployed. Either way it
-never appears in the code or the GitHub repo.
+from the Streamlit Cloud secrets vault when deployed. 
 """
 
 import streamlit as st
@@ -21,10 +21,6 @@ def get_table(table_name: str):
     api = Api(token)
     return api.table(base_id, table_name)
 
-
-# Each loader pulls one full table and caches the result for 5 minutes.
-# We return the raw list of records (each record is a dict with `id`
-# and `fields`). The UI filters and shapes the data itself.
 
 @st.cache_data(ttl=300)
 def load_people() -> list:

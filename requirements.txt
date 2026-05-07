@@ -1,7 +1,7 @@
 # Python packages this project needs.
 # Install all at once with: pip install -r requirements.txt
 
-streamlit>=1.32     # turns Python scripts into web apps
-pandas>=2.0         # for working with tabular data (rows + columns)
-pyairtable>=2.3     # official Python client for Airtable's API
-plotly>=5.20        # interactive charts (bar, pie, line)
+streamlit>=1.32     
+pandas>=2.0        
+pyairtable>=2.3     
+plotly>=5.20       

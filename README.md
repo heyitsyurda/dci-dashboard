@@ -4,13 +4,12 @@ A Streamlit web app that connects to the DCI Airtable database and lets Dr. Bull
 run reports (unique attendees by year, demographic breakdowns, person history,
 event attendance) without writing SQL or scrolling through 20,000 rows.
 
-Built for the Davidson database final project, Spring 2026.
 Team: Cillian Hallinan, Mary Devine, Yurdanur Yolcu.
 
 ## Run it locally
 
 ```bash
-# 1. Create a Python virtual environment (sandbox for our packages)
+# 1. Create a Python virtual environment
 python3 -m venv venv
 
 # 2. Activate it (Mac / Linux)
@@ -35,9 +34,10 @@ You need a personal access token with read access to the base.
    - Access: the DCI Final base only
 2. Create the file `.streamlit/secrets.toml` with this content:
 
+
    ```toml
    AIRTABLE_TOKEN = "your_token_here"
    AIRTABLE_BASE_ID = "appRj4cX0c3HavR64"
    ```
 
-3. The `.gitignore` keeps this file out of GitHub. Never commit your token.
+3. The `.gitignore` keeps this file out of GitHub. Never commit your token for safety.

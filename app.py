@@ -1,13 +1,12 @@
 """
 DCI Engagement Dashboard.
 
-One Streamlit script, four sections shown as tabs:
+Four sections shown as tabs:
 
-    Reports         the headline counts (event attendees, D-Team
-                    participants, newsletter subscribers).
-    Person Search   look up an individual and see their full history.
-    Events          browse every event DCI has hosted.
-    D-Teams         browse every D-Team DCI has run.
+    Reports                  
+    Person Search   
+    Events         
+    D-Teams        
 
 The Airtable data is loaded once at the top of this file and reused
 by every tab, so we hit the API at most once per session per table.
@@ -29,9 +28,9 @@ from airtable import (
 )
 
 
-# -----------------------------------------------------------------------------
+
 # Page config and sidebar
-# -----------------------------------------------------------------------------
+
 st.set_page_config(page_title="DCI Engagement Dashboard", layout="wide")
 
 with st.sidebar:
@@ -49,9 +48,9 @@ with st.sidebar:
     )
 
 
-# -----------------------------------------------------------------------------
+
 # Load every table once. The tabs below all read from these variables.
-# -----------------------------------------------------------------------------
+
 try:
     with st.spinner("Loading data…"):
         people = load_people()
@@ -71,9 +70,9 @@ except Exception as e:
     st.stop()
 
 
-# -----------------------------------------------------------------------------
+
 # Small helpers used by more than one tab.
-# -----------------------------------------------------------------------------
+
 def count_distinct_people(records: list) -> int:
     """How many distinct person_id values appear in this list of records."""
     distinct = set()
@@ -94,9 +93,9 @@ def format_breakdown(counter: Counter) -> str:
     )
 
 
-# -----------------------------------------------------------------------------
+
 # Header
-# -----------------------------------------------------------------------------
+
 st.title("DCI Engagement Dashboard")
 st.markdown(
     "The Deliberative Citizenship Initiative creates opportunities for "
@@ -108,17 +107,17 @@ st.markdown(
 st.divider()
 
 
-# -----------------------------------------------------------------------------
+
 # Tabs
-# -----------------------------------------------------------------------------
+
 tab_reports, tab_events, tab_dteams = st.tabs(
     ["Reports", "Events", "D-Teams"]
 )
 
 
-# =============================================================================
+
 # Reports tab: the headline counts.
-# =============================================================================
+
 with tab_reports:
     st.subheader("People engaging with DCI's work")
     st.caption(
@@ -157,15 +156,9 @@ with tab_reports:
 
     st.divider()
 
-    # -------------------------------------------------------------------------
+
     # Attendance breakdowns by year, event type, and affiliation.
-    #
-    # The Event table in Airtable does not yet have year/semester/type
-    # columns for older events, so we read those from a small CSV that
-    # Dr. Bullock prepared (event_classifications.csv). Once those four
-    # columns get added to the Event table itself, this CSV can go away
-    # and the section below will read from Airtable directly.
-    # -------------------------------------------------------------------------
+    
     st.subheader("Attendance breakdowns")
     st.caption(
         "Total counts every attendance row (so one person who came to "
@@ -188,10 +181,8 @@ with tab_reports:
         if eid is not None and name is not None:
             event_name_by_id[eid] = str(name).strip().lower()
 
-    # person_id -> affiliation (pulled from the People table, since
-    # affiliation is a property of the person rather than the visit).
-    # We try several candidate field names because the schema has
-    # been iterated on.
+    # person_id -> affiliation 
+
     affiliation_by_person = {}
     for r in people:
         f = r["fields"]
@@ -207,8 +198,7 @@ with tab_reports:
         if aff:
             affiliation_by_person[pid] = str(aff)
 
-    # Walk every attendance row, attach the classification (if any),
-    # and end up with a flat dataframe we can group six different ways.
+    
     rows_with_class = []
     for row in attendance:
         f = row["fields"]
@@ -319,9 +309,7 @@ with tab_reports:
     )
 
 
-# =============================================================================
 # Events tab: every event with attendance counts.
-# =============================================================================
 with tab_events:
     st.subheader("Events")
     st.markdown(
@@ -423,9 +411,7 @@ with tab_events:
             )
 
 
-# =============================================================================
-# D-Teams tab: every D-Team with role and status breakdown.
-# =============================================================================
+# D-Teams tab
 with tab_dteams:
     st.subheader("D-Teams")
     st.markdown(
@@ -434,7 +420,6 @@ with tab_dteams:
         "together over multiple rounds to deliberate on a contested topic."
     )
 
-    # Aggregate membership by D-Team.
     participants_per_team: dict = defaultdict(set)
     rounds_per_team: dict = defaultdict(Counter)
     status_per_team: dict = defaultdict(Counter)
