@@ -157,6 +157,132 @@ with tab_reports:
 
     st.divider()
 
+    # -------------------------------------------------------------------------
+    # Attendance breakdowns by year, event type, and affiliation.
+    #
+    # The Event table in Airtable does not yet have year/semester/type
+    # columns for older events, so we read those from a small CSV that
+    # Dr. Bullock prepared (event_classifications.csv). Once those four
+    # columns get added to the Event table itself, this CSV can go away
+    # and the section below will read from Airtable directly.
+    # -------------------------------------------------------------------------
+    st.subheader("Attendance breakdowns")
+    st.caption(
+        "Total counts every attendance row (so one person who came to "
+        "three events shows up three times). Unique counts the distinct "
+        "people behind those rows."
+    )
+
+    classifications = pd.read_csv("event_classifications.csv")
+    classification_by_name = {
+        str(row["Event"]).strip().lower(): row
+        for _, row in classifications.iterrows()
+    }
+
+    # event_id -> event name (so we can look up the classification by name)
+    event_name_by_id = {}
+    for r in events:
+        f = r["fields"]
+        eid = f.get("event_id")
+        name = pick(f, ["name", "event_name", "Name", "title"], default=None)
+        if eid is not None and name is not None:
+            event_name_by_id[eid] = str(name).strip().lower()
+
+    # Walk every attendance row, attach the classification (if any),
+    # and end up with a flat dataframe we can group six different ways.
+    rows_with_class = []
+    for row in attendance:
+        f = row["fields"]
+        eid = f.get("event_id")
+        pid = f.get("person_id")
+        ticket = f.get("ticket_type", "")
+        name = event_name_by_id.get(eid)
+        if not name:
+            continue
+        cls = classification_by_name.get(name)
+        if cls is None:
+            continue
+        rows_with_class.append({
+            "person_id": pid,
+            "Affiliation": ticket if ticket else "(unspecified)",
+            "Calendar Year": cls["Calendar Year"],
+            "Semester": cls["Semester"],
+            "Academic Year": cls["Academic Year"],
+            "Type of Event": cls["Type of Event"],
+        })
+
+    matched = len(rows_with_class)
+    total_records = len(attendance)
+
+    if matched == 0:
+        st.info(
+            "No attendance records matched a classified event yet. "
+            "Once event names line up, the breakdowns below will populate."
+        )
+    else:
+        att_df = pd.DataFrame(rows_with_class)
+
+        def summarize(group_col: str) -> pd.DataFrame:
+            """Total attendances and unique people, grouped by one column."""
+            return (
+                att_df.groupby(group_col)
+                .agg(**{
+                    "Total attendances": ("person_id", "count"),
+                    "Unique people": ("person_id", "nunique"),
+                })
+                .reset_index()
+                .sort_values("Total attendances", ascending=False)
+            )
+
+        st.markdown("**By academic year**")
+        st.dataframe(
+            summarize("Academic Year"),
+            use_container_width=True,
+            hide_index=True,
+        )
+
+        st.markdown("**By event type**")
+        st.dataframe(
+            summarize("Type of Event"),
+            use_container_width=True,
+            hide_index=True,
+        )
+
+        st.markdown("**By affiliation**")
+        st.dataframe(
+            summarize("Affiliation"),
+            use_container_width=True,
+            hide_index=True,
+        )
+
+        # Cross-tab: rows = Academic Year, columns = Type of Event,
+        # values = total attendances. Useful for the "Year x Type" view
+        # Dr. Bullock specifically asked for.
+        st.markdown("**Academic year × event type (total attendances)**")
+        cross = pd.pivot_table(
+            att_df,
+            index="Academic Year",
+            columns="Type of Event",
+            values="person_id",
+            aggfunc="count",
+            fill_value=0,
+        ).reset_index()
+        st.dataframe(cross, use_container_width=True, hide_index=True)
+
+        unmatched = total_records - matched
+        if unmatched > 0:
+            st.caption(
+                f"Showing {matched:,} of {total_records:,} attendance "
+                f"records. The remaining {unmatched:,} are tied to events "
+                f"not in the classification spreadsheet yet, and will appear "
+                f"here once the year/semester/type columns are added to the "
+                f"Event table in Airtable."
+            )
+        else:
+            st.caption(f"Showing all {matched:,} attendance records.")
+
+    st.divider()
+
     st.subheader("How this stays up to date")
     st.markdown(
         """
